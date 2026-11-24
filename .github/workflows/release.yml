@@ -1,0 +1,34 @@
+# Проверки и релиз при пуше в main (как в signaly-app: релиз делает GitHub, не сессия).
+# Ветки session-NN — только проверки. Коммит с [skip ci] — ничего не запускает.
+name: release
+on:
+  push:
+    branches: [main, 'session-*']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Синтаксис
+        run: |
+          node --check wled.js && node --check wled-mock.js
+          python3 -c "import re;s=open('light.htm',encoding='utf-8').read();open('/tmp/inline.js','w').write(re.findall(r'<script>(.*?)</script>',s,re.S)[0])"
+          node --check /tmp/inline.js
+      - name: Модуль на заглушке
+        run: node tests/unit.js
+      - name: Страница в Chrome на заглушке
+        run: |
+          npm i --no-save playwright@1
+          node tests/ui-smoke.mjs "$(which google-chrome)"
+      - name: Релиз
+        if: github.ref == 'refs/heads/main'
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          TAG="v0.1.${{ github.run_number }}"
+          zip -q signaly-light-$TAG.zip light.htm wled.js
+          gh release create "$TAG" light.htm wled.js signaly-light-$TAG.zip --target "$GITHUB_SHA" \
+            --title "Свет $TAG" --notes "Загрузите light.htm и wled.js на контроллер через http://<IP>/edit и откройте http://<IP>/light.htm (подробно — README). Коммит: $GITHUB_SHA"
