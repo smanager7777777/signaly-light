@@ -20,18 +20,20 @@
   .row { display: flex; gap: 8px; align-items: center; }
   .row.wrap { flex-wrap: wrap; }
   .grow { flex: 1 1 0; min-width: 0; width: auto; }
-  input[type=text], select {
+  input[type=text], input[type=number], select {
     background: #0d0e10; color: var(--text); border: 1px solid var(--line); border-radius: 10px;
     padding: 10px 12px; font: inherit; min-height: 44px; }
+  input[type=number] { width: 76px; }
+  input[type=color] { width: 44px; height: 44px; padding: 2px; border: 1px solid var(--line); border-radius: 10px; background: #0d0e10; }
   button {
     background: #262930; color: var(--text); border: 1px solid var(--line); border-radius: 10px;
     padding: 10px 14px; font: inherit; min-height: 44px; min-width: 44px; cursor: pointer; touch-action: manipulation; }
   button:active { transform: scale(.97); }
-  button.main { background: var(--acc); color: #1a1205; border-color: var(--acc); font-weight: 600; }
+  button.main, button.cur { background: var(--acc); color: #1a1205; border-color: var(--acc); font-weight: 600; }
   .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bad); flex: none; }
   .dot.ok { background: var(--ok); }
   .dot.wait { background: var(--acc); }
-  #status { color: var(--dim); font-size: 14px; }
+  #status { color: var(--dim); font-size: 14px; margin-top: 8px; }
   #found { margin-top: 8px; display: grid; gap: 6px; }
   #found button { text-align: left; }
   .lock { opacity: .45; pointer-events: none; }
@@ -55,20 +57,55 @@
   #kelBar { height: 10px; border-radius: 5px; margin: 2px 0 6px;
     background: linear-gradient(to right, rgb(220,229,255), rgb(255,250,244), rgb(255,206,166), rgb(255,160,70)); }
   .presets button { flex: 1 1 0; min-width: 0; padding: 8px 2px; font-size: 13px; }
-  details summary { cursor: pointer; color: var(--dim); min-height: 32px; }
+  details summary { cursor: pointer; color: var(--dim); min-height: 32px; margin-top: 8px; }
   .hint { color: var(--dim); font-size: 13px; margin: 6px 0 0; }
+  /* устройства */
+  #devs { display: grid; gap: 6px; margin-bottom: 10px; }
+  .dev { display: flex; gap: 8px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 4px 4px 4px 10px; }
+  .dev label { display: flex; gap: 10px; align-items: center; flex: 1 1 0; min-width: 0; cursor: pointer; min-height: 44px; }
+  .dev input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--acc); flex: none; margin: 0; }
+  .dev .dn { min-width: 0; overflow: hidden; }
+  .dev .dn b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  .dev small { color: var(--dim); font-size: 12px; }
+  .dev .ren-in { flex: 1 1 0; min-width: 0; }
+  /* куда */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .chips button { min-height: 36px; padding: 6px 10px; font-size: 14px; }
+  /* участки */
+  #segBar { position: relative; height: 22px; border-radius: 6px; background: #000; border: 1px solid var(--line); overflow: hidden; margin-bottom: 10px; }
+  #segBar div { position: absolute; top: 0; bottom: 0; border-right: 1px solid #000; }
+  .fxbg { background-image: repeating-linear-gradient(45deg, #0008 0 4px, transparent 4px 8px) !important; }
+  #segs { display: grid; gap: 6px; }
+  .seg { display: grid; grid-template-columns: 28px 1fr auto auto; gap: 6px 8px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 6px 6px 6px 10px; }
+  .seg .sw { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line); }
+  .seg .sn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .seg .sn small { color: var(--dim); font-size: 12px; margin-left: 6px; }
+  .seg .sb { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; }
+  .seg .sb .val { width: 44px; text-align: right; }
+  .seg.cur { border-color: var(--acc); }
+  #segForm { margin-top: 10px; }
+  #segForm label { color: var(--dim); font-size: 14px; }
+  /* светодиоды */
+  #ledGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(18px, 1fr)); gap: 3px; touch-action: none; user-select: none; margin-bottom: 8px; }
+  .led { aspect-ratio: 1; border-radius: 4px; border: 1px solid #0006; }
+  .led.none { opacity: .25; }
+  .led.on { outline: 2px solid #fff; outline-offset: 0; }
+  #ledInfo { margin: 4px 0; }
 </style>
 </head>
 <body>
 <h1><span class="dot" id="dot"></span> Свет</h1>
 
 <section class="card">
-  <h2>Контроллер</h2>
+  <h2>Устройства</h2>
+  <div id="devs"></div>
   <div class="row">
     <input type="text" id="host" class="grow" placeholder="IP контроллера, например 192.168.1.50" inputmode="url" autocomplete="off">
-    <button class="main" id="connect">Подключить</button>
+    <button class="main" id="connect">Добавить</button>
   </div>
-  <div id="status">Не подключено</div>
+  <div class="row" style="margin-top:8px">
+    <button id="nodes" class="grow">Соседи из WLED</button>
+  </div>
   <details id="scanBox">
     <summary>Найти в сети</summary>
     <div class="row">
@@ -77,8 +114,10 @@
     </div>
     <div class="hint">Перебираются адреса подсети …1–254 и 4.3.2.1 (собственная сеть WLED). Подсеть — первые три числа IP телефона или компьютера (на Windows: <code>ipconfig</code>).</div>
     <div id="scanProg" class="hint"></div>
-    <div id="found"></div>
   </details>
+  <div id="found"></div>
+  <div id="status">Не подключено</div>
+  <div class="hint">Отметьте одно или несколько устройств: вкл/выкл, яркость, цвет и эффекты «Вся лента» уходят на все отмеченные. Участки и светодиоды — у одного устройства (выбор — в «Участках»). «Соседи» — список, который WLED собирает сам (Config → Sync Interfaces → Discovery).</div>
 </section>
 
 <div id="controls" class="lock">
@@ -98,6 +137,7 @@
 
   <section class="card">
     <h2>Цвет</h2>
+    <div class="chips" id="targets"></div>
     <div id="wheelBox"><canvas id="wheel"></canvas><div id="mark"></div></div>
     <div class="row wrap">
       <div id="swatch"></div>
@@ -124,6 +164,72 @@
   </section>
 
   <section class="card">
+    <h2>Эффекты</h2>
+    <div class="row wrap" id="fxBtns">
+      <button id="fxSolid" data-fx="solid">Ровный цвет</button>
+      <button id="fxGrad" data-fx="gradient">Градиент</button>
+      <button id="fxBlink" data-fx="blink">Мигание</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label for="fxSpeed" class="val">Скорость</label>
+      <input type="range" id="fxSpeed" class="grow" min="0" max="255" value="128">
+    </div>
+    <div class="val" id="fxSpeedVal"></div>
+    <div class="row" style="margin-top:8px">
+      <input type="color" id="fxC2" value="#000000">
+      <label for="fxC2" class="grow val">Второй цвет (первый — выбранный цвет выше)</label>
+    </div>
+    <div class="hint" id="fxHint">Куда — как у цвета: вся лента или участок.</div>
+  </section>
+
+  <section class="card" id="segCard">
+    <h2>Участки ленты</h2>
+    <div class="row" id="segDevRow" style="margin-bottom:8px">
+      <label for="segDev" class="val">Устройство</label>
+      <select id="segDev" class="grow"></select>
+    </div>
+    <div id="segBar"></div>
+    <div id="segs"></div>
+    <div id="segForm">
+      <div class="row wrap">
+        <label for="segFrom">С</label><input type="number" id="segFrom" min="1" inputmode="numeric">
+        <label for="segTo">по</label><input type="number" id="segTo" min="1" inputmode="numeric">
+        <input type="text" id="segName" class="grow" placeholder="Название (необязательно)" maxlength="32" autocomplete="off">
+      </div>
+      <div class="row wrap" style="margin-top:8px">
+        <button id="segAdd" class="main">Добавить участок</button>
+        <button id="segCancel" style="display:none">Отмена</button>
+        <button id="segFromSel">Из выбранных светодиодов</button>
+      </div>
+    </div>
+    <div class="hint">Номера светодиодов — с 1. Участок с бо́льшим номером рисуется поверх. WLED не хранит участки после выключения питания — сохранение будет в сценариях (этап 3).</div>
+  </section>
+
+  <section class="card" id="ledCard">
+    <h2>Отдельные светодиоды</h2>
+    <div id="ledGrid"></div>
+    <div class="val" id="ledInfo"></div>
+    <div class="row wrap">
+      <label for="ledFrom">С</label><input type="number" id="ledFrom" min="1" inputmode="numeric">
+      <label for="ledTo">по</label><input type="number" id="ledTo" min="1" inputmode="numeric">
+      <button id="ledPick">Выбрать</button>
+    </div>
+    <div class="row wrap" style="margin-top:8px">
+      <button id="ledAll">Все</button>
+      <button id="ledEvery">Через один</button>
+      <button id="ledNone">Снять</button>
+      <label class="val"><input type="checkbox" id="ledAddMode"> добавлять</label>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label for="ledBri" class="val">Яркость</label>
+      <input type="range" id="ledBri" class="grow" min="0" max="100" value="100">
+      <span class="val" id="ledBriVal">100%</span>
+    </div>
+    <div class="row" style="margin-top:8px"><button id="ledReset" class="grow">Сбросить светодиоды (цвет участков)</button></div>
+    <div class="hint">Проведите пальцем по ленте — выберется диапазон; с «добавлять» — к уже выбранным (касание выбранного — убрать). Цвет выбранных — кругом, HEX или избранным выше (цель «Светодиоды» включается сама). Яркость светодиода — цвет, умноженный на долю: у WLED своей яркости светодиода нет.</div>
+  </section>
+
+  <section class="card">
     <h2>Настройки</h2>
     <div class="row">
       <label class="grow" for="steps">Шагов яркости (ползунок и −/+)</label>
@@ -142,79 +248,158 @@
     get(k, d) { try { const v = localStorage.getItem('signaly-light.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem('signaly-light.' + k, JSON.stringify(v)); } catch (e) { /* нет хранилища */ } },
   };
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 
   const MOCK = /[?&]mock\b/.test(location.search);
   let fetchImpl = null;           // заглушка для ?mock
-  let client = null, online = false;
   let steps = [20, 100, 255].indexOf(LS.get('steps', 255)) >= 0 ? LS.get('steps', 255) : 255;
   let ui = { on: false, bri: 128, rgb: [255, 160, 80] };
   let dragging = false, pollTimer = null, scanCtl = null;
+  let devs = [];                  // {ip, name, sel, client, online, busy, renaming}
+  let activeIp = LS.get('active', '');
+  let target = 'all';             // 'all' | 'seg:<id>' | 'leds'
+  let ledSel = new Set();         // выбранные светодиоды активного устройства (номера с 0)
+  let segEdit = null;             // id участка, который правится в форме
+  const sig = {};                 // подписи, чтобы не перерисовывать без нужды
 
-  // ---------- статус ----------
-  function setStatus(text, kind) {
-    $('status').textContent = text;
-    $('dot').className = 'dot' + (kind ? ' ' + kind : '');
-    $('controls').classList.toggle('lock', kind !== 'ok');
+  // ---------- устройства ----------
+  const opts = () => (fetchImpl ? { fetch: fetchImpl } : {});
+  function mkDev(ip, name, sel) { return { ip: Wled.normHost(ip), name: name || '', sel: !!sel, client: null, online: false }; }
+  function saveDevs() { LS.set('devices', devs.map((d) => ({ ip: d.ip, name: d.name || '', sel: !!d.sel }))); }
+  function loadDevs() {
+    let l = LS.get('devices', null);
+    if (!Array.isArray(l)) { const h = LS.get('host', ''); l = h ? [{ ip: h, sel: true }] : []; } // список этапа 1
+    devs = l.filter((x) => x && x.ip).map((x) => mkDev(x.ip, x.name, x.sel));
   }
-  function infoLine(host, info) {
-    const w = info.wifi && typeof info.wifi.signal === 'number' ? ' · Wi-Fi ' + info.wifi.signal + '%' : '';
-    return 'Подключено: ' + (info.name || 'WLED') + ' (' + host + ') · WLED ' + info.ver + ' · ' + info.leds.count + ' светодиодов' + w;
-  }
+  const info = (d) => (d.client && d.client.info) || null;
+  const devName = (d) => d.name || (info(d) && info(d).name) || d.ip;
+  const selOnline = () => devs.filter((d) => d.sel && d.online);
+  function active() { const s = selOnline(); return s.find((d) => d.ip === activeIp) || s[0] || null; }
 
-  // ---------- подключение ----------
-  async function connect(host) {
-    host = Wled.normHost(host);
-    if (!host) { setStatus('Введите IP контроллера', ''); return; }
-    $('host').value = host;
-    setStatus('Подключение к ' + host + '…', 'wait');
-    const opts = fetchImpl ? { fetch: fetchImpl } : {};
-    const info = await Wled.probe(host, Object.assign({ timeout: 3000 }, opts));
-    if (!info) {
-      online = false;
-      setStatus('Нет ответа от ' + host + '. Проверьте IP, Wi-Fi и способ открытия страницы (см. README).', '');
-      return;
+  async function connectDev(d) {
+    if (d.busy) return;
+    d.busy = true;
+    if (!d.client) d.client = Wled.createClient(d.ip, opts());
+    let ok = false;
+    try { ok = Wled.isWledInfo(await d.client.getInfo(3000)); } catch (e) { ok = false; }
+    if (ok) {
+      await d.client.loadEffects();
+      try { await d.client.getState(); } catch (e) { /* обновит опрос */ }
     }
-    client = Wled.createClient(host, opts);
-    LS.set('host', host);
-    try { applyState(await client.getState()); } catch (e) { /* статус обновит опрос */ }
-    online = true;
-    setStatus(infoLine(host, info), 'ok');
-    startPoll(host, info);
+    d.online = ok; d.busy = false;
+    renderAll();
+  }
+  function addDevice(ip, quiet) {
+    ip = Wled.normHost(ip);
+    if (!ip) { setStatus('Введите IP контроллера'); return null; }
+    let d = devs.find((x) => x.ip === ip);
+    if (!d) { d = mkDev(ip, '', true); devs.push(d); } else d.sel = true;
+    saveDevs();
+    if (!quiet) setStatus('Подключение к ' + ip + '…');
+    connectDev(d).then(() => {
+      if (!quiet) setStatus(d.online ? 'Добавлено: ' + devName(d) + ' (' + ip + ')' : 'Нет ответа от ' + ip + '. Проверьте IP, Wi-Fi и способ открытия страницы (см. README).');
+    });
+    renderAll();
+    return d;
+  }
+  function setStatus(t) { $('status').textContent = t; }
+
+  function renderDevs(force) {
+    if (!force && devs.some((d) => d.renaming)) return;
+    const s = JSON.stringify(devs.map((d) => [d.ip, devName(d), d.sel, d.online, d.busy, d.renaming, info(d) && info(d).leds.count]));
+    if (!force && s === sig.devs) return;
+    sig.devs = s;
+    const box = $('devs'); box.textContent = '';
+    devs.forEach((d) => {
+      const row = el('div', 'dev'); row.dataset.ip = d.ip;
+      if (d.renaming) {
+        const inp = el('input', 'ren-in'); inp.type = 'text'; inp.maxLength = 32; inp.value = devName(d);
+        const ok = el('button', 'main ren-ok', 'OK'), no = el('button', '', '×');
+        const done = (save) => {
+          d.renaming = false;
+          if (save) {
+            d.name = inp.value.trim(); saveDevs();
+            if (d.online && d.name) {
+              d.client.setName(d.name).then((r) => setStatus(r ? 'Имя «' + d.name + '» записано в контроллер — его увидят все телефоны.' : 'Имя сохранено только в этом браузере.'),
+                () => setStatus('Имя сохранено только в этом браузере: контроллер не принял.'));
+            }
+          }
+          renderDevs(true);
+        };
+        ok.onclick = () => done(true); no.onclick = () => done(false);
+        inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') done(true); if (e.key === 'Escape') done(false); });
+        row.append(inp, ok, no); box.appendChild(row);
+        setTimeout(() => inp.focus(), 0);
+        return;
+      }
+      const lab = el('label');
+      const cb = el('input', 'sel'); cb.type = 'checkbox'; cb.checked = d.sel;
+      cb.onchange = () => { d.sel = cb.checked; saveDevs(); if (d.sel && !d.online) connectDev(d); renderAll(); };
+      const dot = el('span', 'dot' + (d.online ? ' ok' : d.busy ? ' wait' : ''));
+      const dn = el('span', 'dn'); const i = info(d);
+      dn.append(el('b', '', devName(d)), el('small', '', d.ip + (i ? ' · ' + i.leds.count + ' светодиодов · WLED ' + i.ver : d.busy ? ' · подключение…' : ' · нет связи')));
+      lab.append(cb, dot, dn);
+      const ren = el('button', 'ren', '✎'); ren.title = 'Переименовать';
+      ren.onclick = () => { d.renaming = true; renderDevs(true); };
+      const del = el('button', 'del', '×'); del.title = 'Убрать из списка';
+      del.onclick = () => { devs = devs.filter((x) => x !== d); saveDevs(); renderAll(); };
+      row.append(lab, ren, del); box.appendChild(row);
+    });
   }
 
-  function startPoll(host, info) {
+  function renderHead() {
+    const on = selOnline(), sel = devs.filter((d) => d.sel);
+    $('dot').className = 'dot' + (on.length ? ' ok' : devs.some((d) => d.busy) ? ' wait' : '');
+    $('controls').classList.toggle('lock', !on.length);
+    if (!devs.length) setStatus('Добавьте контроллер: IP, «Соседи» или «Найти в сети».');
+    else if (!sel.length) setStatus('Отметьте устройство в списке.');
+  }
+
+  // ---------- опрос ----------
+  function startPoll() {
     clearInterval(pollTimer);
     pollTimer = setInterval(async () => {
-      if (!client || !client.idle || dragging) return;
-      try {
-        const st = await client.getState();
-        if (!online) { online = true; setStatus(infoLine(host, info), 'ok'); }
-        applyState(st);
-      } catch (e) {
-        if (online) { online = false; setStatus('Связь потеряна с ' + host + '. Повторяю…', 'wait'); }
-      }
+      await Promise.all(devs.map(async (d) => {
+        if (d.busy || (d.client && !d.client.idle) || (dragging && d.sel)) return;
+        if (!d.online) { if (d.sel) await connectDev(d); return; }
+        try { await d.client.getState(); } catch (e) { d.online = false; }
+      }));
+      if (!dragging) renderAll();
     }, 5000);
   }
 
-  // ---------- состояние → экран ----------
-  function applyState(st) {
-    if (!st) return;
-    if (typeof st.on === 'boolean') ui.on = st.on;
-    if (typeof st.bri === 'number' && !dragging) ui.bri = st.bri;
-    const seg = st.seg && st.seg[0];
-    if (seg && seg.col && seg.col[0] && !dragging) ui.rgb = seg.col[0].slice(0, 3);
-    renderPower(); renderBri(); renderColor(true);
+  // ---------- состояние активного → экран ----------
+  function segsA() { const a = active(); return a ? Wled.segsOf(a.client.state) : []; }
+  function targetSeg() {
+    if (target.indexOf('seg:') !== 0) return null;
+    const id = +target.slice(4);
+    return segsA().find((s) => s.id === id) || null;
   }
-  function sendSafe(p) { if (client) p.then(applyStateLight, () => {}); }
-  // ответ на команду: обновляем только вкл/выкл, чтобы не дёргать ползунок под пальцем
-  function applyStateLight(st) { if (st && typeof st.on === 'boolean') { ui.on = st.on; renderPower(); } }
+  function renderAll() {
+    renderDevs(); renderHead();
+    const a = active();
+    if (target.indexOf('seg:') === 0 && !targetSeg()) target = 'all';
+    if (a && a.client.state && !dragging) {
+      const st = a.client.state;
+      if (typeof st.on === 'boolean') ui.on = st.on;
+      if (typeof st.bri === 'number') ui.bri = st.bri;
+      const s = target === 'all' ? segsA()[0] : targetSeg();
+      if (s) ui.rgb = Wled.segColor(s);
+    }
+    renderPower(); renderBri(); renderColor(true); renderTargets(); renderFx(); renderSegs(); renderLeds();
+  }
+  // команда устройству; ошибка — в строку состояния
+  function run(p, after) {
+    return p.then(() => { if (after) after(); renderAll(); }, (e) => { setStatus('Не выполнено: ' + (e && e.message || e)); renderAll(); });
+  }
+  const each = (fn) => selOnline().forEach((d) => run(fn(d.client)));
 
   // ---------- вкл/выкл ----------
   function renderPower() {
     $('power').textContent = ui.on ? 'Включено — выключить' : 'Выключено — включить';
     $('power').classList.toggle('on', ui.on);
   }
-  $('power').onclick = () => { if (!client) return; ui.on = !ui.on; renderPower(); sendSafe(client.setOn(ui.on)); };
+  $('power').onclick = () => { ui.on = !ui.on; renderPower(); each((c) => c.setOn(ui.on)); };
 
   // ---------- яркость ----------
   function renderBri() {
@@ -228,15 +413,56 @@
     ui.bri = Math.max(1, Wled.briFromStep(k, steps));
     ui.on = true;
     renderBri(); renderPower();
-    if (client) sendSafe(client.setBri(ui.bri));
+    each((c) => c.setBri(ui.bri));
+  }
+  function holdWhileDrag(node) {
+    ['pointerdown', 'touchstart'].forEach((e) => node.addEventListener(e, () => { dragging = true; }, { passive: true }));
+    ['pointerup', 'pointercancel', 'touchend', 'change'].forEach((e) => node.addEventListener(e, () => { dragging = false; }));
   }
   $('bri').addEventListener('input', () => setStep(+$('bri').value));
-  ['pointerdown', 'touchstart'].forEach((e) => $('bri').addEventListener(e, () => { dragging = true; }, { passive: true }));
-  ['pointerup', 'pointercancel', 'touchend', 'change'].forEach((e) => $('bri').addEventListener(e, () => { dragging = false; }));
+  holdWhileDrag($('bri'));
   $('briMinus').onclick = () => setStep(Wled.stepFromBri(ui.bri, steps) - 1);
   $('briPlus').onclick = () => setStep(Wled.stepFromBri(ui.bri, steps) + 1);
   $('steps').value = String(steps);
   $('steps').addEventListener('input', () => { steps = +$('steps').value; LS.set('steps', steps); renderBri(); });
+
+  // ---------- куда: вся лента / участок / светодиоды ----------
+  function segLabel(s) { return 'Участок ' + (s.id + 1) + (s.n ? ' «' + s.n + '»' : ''); }
+  function renderTargets() {
+    const many = selOnline().length > 1, segs = segsA();
+    const list = [['all', many ? 'Все ленты (' + selOnline().length + ')' : 'Вся лента']];
+    if (segs.length > 1) segs.forEach((s) => list.push(['seg:' + s.id, segLabel(s)]));
+    list.push(['leds', 'Светодиоды' + (ledSel.size ? ' (' + ledSel.size + ')' : '')]);
+    const s = JSON.stringify([list, target]);
+    if (s === sig.targets) return;
+    sig.targets = s;
+    const box = $('targets'); box.textContent = '';
+    list.forEach(([t, name]) => {
+      const b = el('button', t === target ? 'cur' : '', name); b.dataset.t = t;
+      b.onclick = () => setTarget(t);
+      box.appendChild(b);
+    });
+  }
+  function setTarget(t) {
+    target = t;
+    const s = targetSeg();
+    if (s) ui.rgb = Wled.segColor(s);
+    renderColor(true); renderTargets(); renderFx(); renderSegs();
+  }
+
+  // ---------- цвет: к цели ----------
+  function applyColor(rgb) {
+    const a = active();
+    if (target === 'all') each((c) => c.setColor(rgb));
+    else if (target === 'leds') {
+      if (!a) return;
+      if (!ledSel.size) { setStatus('Выберите светодиоды на ленте внизу.'); return; }
+      const cur = a.client.leds, map = {};
+      ledSel.forEach((g) => { map[g] = { rgb, bri: cur[g] ? cur[g].bri : 255 }; });
+      run(a.client.setLeds(map));
+      renderLeds();
+    } else if (a && targetSeg()) run(a.client.setColor(rgb, [targetSeg().id]));
+  }
 
   // ---------- цветовой круг ----------
   const cv = $('wheel'), ctx = cv.getContext('2d');
@@ -270,7 +496,7 @@
   function setColor(rgb, fromHex) {
     ui.rgb = rgb; ui.on = true;
     renderColor(!fromHex); renderPower();
-    if (client) sendSafe(client.setColor(rgb));
+    applyColor(rgb);
   }
   function pick(ev) {
     const r = cv.getBoundingClientRect(), R = r.width / 2;
@@ -316,44 +542,265 @@
   function renderKel() { $('kelVal').textContent = $('kel').value + ' К'; }
   function setKel(k) { $('kel').value = k; renderKel(); setColor(C.kelvinToRgb(+k)); }
   $('kel').addEventListener('input', () => setKel($('kel').value));
-  ['pointerdown', 'touchstart'].forEach((e) => $('kel').addEventListener(e, () => { dragging = true; }, { passive: true }));
-  ['pointerup', 'pointercancel', 'touchend', 'change'].forEach((e) => $('kel').addEventListener(e, () => { dragging = false; }));
+  holdWhileDrag($('kel'));
   document.querySelectorAll('.presets button').forEach((b) => { b.onclick = () => setKel(b.dataset.k); });
 
-  // ---------- поиск ----------
+  // ---------- эффекты ----------
+  let fxKind = 'solid', fxUser = { target: '', kind: '' };
+  function fxOfTarget() {
+    const a = active(); if (!a) return 'solid';
+    const s = target === 'all' ? segsA()[0] : targetSeg(); if (!s) return 'solid';
+    const e = a.client.effects;
+    const k = s.fx === e.blink ? 'blink' : s.fx === e.gradient ? 'gradient' : 'solid';
+    // неподвижный градиент на ленте — это отдельные светодиоды, по fx его не видно
+    if (k === 'solid' && fxUser.kind === 'gradient' && fxUser.target === target && Object.keys(a.client.leds).length) return 'gradient';
+    return k;
+  }
+  function renderFx() {
+    if (!dragging) fxKind = fxOfTarget();
+    document.querySelectorAll('#fxBtns button').forEach((b) => b.classList.toggle('cur', b.dataset.fx === fxKind));
+    const v = +$('fxSpeed').value;
+    $('fxSpeedVal').textContent = v === 0 ? '0 — градиент стоит на месте; мигание — самое медленное' : v + ' из 255';
+    $('fxHint').textContent = target === 'leds' ? 'Эффект — для всей ленты или участка: выберите их в «Цвет» выше.'
+      : 'Куда: ' + (target === 'all' ? (selOnline().length > 1 ? 'все отмеченные ленты' : 'вся лента') : segLabel(targetSeg())) + '.';
+  }
+  function applyFx(kind) {
+    const a = active();
+    if (target === 'leds') { setStatus('Эффект — для всей ленты или участка: выберите их в «Цвет».'); return; }
+    fxKind = kind; fxUser = { target, kind };
+    const o = { c1: ui.rgb, c2: C.hexToRgb($('fxC2').value) || [0, 0, 0], speed: +$('fxSpeed').value };
+    if (target === 'all') each((c) => c.setEffect(kind, o));
+    else if (a && targetSeg()) run(a.client.setEffect(kind, Object.assign({ ids: [targetSeg().id] }, o)));
+    renderFx();
+  }
+  document.querySelectorAll('#fxBtns button').forEach((b) => { b.onclick = () => applyFx(b.dataset.fx); });
+  $('fxSpeed').addEventListener('input', () => { renderFx(); if (fxKind !== 'solid') applyFx(fxKind); });
+  holdWhileDrag($('fxSpeed'));
+  $('fxC2').addEventListener('input', () => { if (fxKind !== 'solid') applyFx(fxKind); });
+
+  // ---------- участки ----------
+  function renderSegs() {
+    const a = active();
+    $('segCard').style.display = a ? '' : 'none';
+    if (!a) return;
+    const on = selOnline();
+    $('segDevRow').style.display = on.length > 1 ? '' : 'none';
+    const segs = segsA(), n = a.client.count, e = a.client.effects;
+    const s = JSON.stringify([on.map((d) => [d.ip, devName(d)]), a.ip, n, target, segs.map((x) => [x.id, x.start, x.stop, x.n, x.on, x.bri, x.col && x.col[0], x.fx])]);
+    if (s === sig.segs || dragging) return;
+    sig.segs = s;
+    const sel = $('segDev'); sel.textContent = '';
+    on.forEach((d) => { const o = el('option', '', devName(d)); o.value = d.ip; o.selected = d === a; sel.appendChild(o); });
+    const bar = $('segBar'); bar.textContent = '';
+    const box = $('segs'); box.textContent = '';
+    segs.forEach((x) => {
+      const hex = C.rgbToHex(Wled.segColor(x)), isFx = x.fx !== e.solid;
+      const b = el('div', isFx ? 'fxbg' : '');
+      b.style.left = (x.start / n * 100) + '%'; b.style.width = ((x.stop - x.start) / n * 100) + '%';
+      b.style.background = x.on ? hex : '#000'; b.style.zIndex = x.id + 1; b.title = segLabel(x);
+      bar.appendChild(b);
+      const row = el('div', 'seg' + (target === 'seg:' + x.id ? ' cur' : '')); row.dataset.id = x.id;
+      const sw = el('span', 'sw' + (isFx ? ' fxbg' : '')); sw.style.background = hex;
+      const nm = el('span', 'sn', segLabel(x));
+      nm.appendChild(el('small', '', (x.start + 1) + '–' + x.stop + ' · ' + (x.stop - x.start) + ' шт.'));
+      nm.style.cursor = 'pointer'; nm.onclick = () => setTarget('seg:' + x.id);
+      const ed = el('button', 'sed', '✎'); ed.title = 'Изменить';
+      ed.onclick = () => {
+        segEdit = x.id; $('segFrom').value = x.start + 1; $('segTo').value = x.stop; $('segName').value = x.n || '';
+        $('segAdd').textContent = 'Сохранить участок ' + (x.id + 1); $('segCancel').style.display = '';
+      };
+      const del = el('button', 'sdel', '×'); del.title = 'Удалить';
+      del.onclick = () => run(a.client.deleteSegment(x.id), () => { if (segEdit === x.id) segForm(); });
+      const sb = el('div', 'sb');
+      const r = el('input', 'sbri'); r.type = 'range'; r.min = 0; r.max = 100;
+      const pct = x.on ? Math.round((x.bri == null ? 255 : x.bri) / 2.55) : 0;
+      r.value = pct;
+      const v = el('span', 'val', pct + '%');
+      r.addEventListener('input', () => {
+        v.textContent = r.value + '%';
+        const bri = Math.round(+r.value * 255 / 100);
+        run(a.client.setSegBri(x.id, bri).then(() => a.client.refreshLeds([x.id])));
+      });
+      holdWhileDrag(r);
+      sb.append(el('span', 'val', 'Ярк.'), r, v);
+      row.append(sw, nm, ed, del, sb);
+      box.appendChild(row);
+    });
+    $('segFrom').max = $('segTo').max = n;
+  }
+  function segForm() {
+    segEdit = null; $('segFrom').value = ''; $('segTo').value = ''; $('segName').value = '';
+    $('segAdd').textContent = 'Добавить участок'; $('segCancel').style.display = 'none';
+  }
+  $('segDev').addEventListener('input', () => { activeIp = $('segDev').value; LS.set('active', activeIp); ledSel.clear(); renderAll(); });
+  $('segCancel').onclick = segForm;
+  $('segFromSel').onclick = () => {
+    if (!ledSel.size) { setStatus('Сначала выберите светодиоды на ленте.'); return; }
+    const l = [...ledSel]; $('segFrom').value = Math.min(...l) + 1; $('segTo').value = Math.max(...l) + 1;
+  };
+  $('segAdd').onclick = () => {
+    const a = active(); if (!a) return;
+    const n = a.client.count, from = +$('segFrom').value, to = +$('segTo').value, name = $('segName').value.trim();
+    if (!(from >= 1 && to >= from && to <= n)) { setStatus('Участок: номера от 1 до ' + n + ', «по» не меньше «с».'); return; }
+    const p = segEdit != null ? a.client.updateSegment(segEdit, { start: from - 1, stop: to, name })
+      : a.client.addSegment(from - 1, to, { rgb: ui.rgb, name });
+    run(p, () => { setStatus((segEdit != null ? 'Участок изменён: ' : 'Участок добавлен: ') + from + '–' + to); segForm(); });
+  };
+
+  // ---------- отдельные светодиоды ----------
+  let selBase = new Set(), anchor = -1, moved = false, selDrag = false;
+  function renderLeds() {
+    const a = active();
+    $('ledCard').style.display = a ? '' : 'none';
+    if (!a) return;
+    const n = a.client.count, grid = $('ledGrid');
+    if (grid.childElementCount !== n || sig.ledIp !== a.ip) {
+      sig.ledIp = a.ip; grid.textContent = '';
+      ledSel = new Set([...ledSel].filter((g) => g < n));
+      for (let g = 0; g < n; g++) { const c = el('div', 'led'); c.dataset.i = g; c.title = String(g + 1); grid.appendChild(c); }
+      $('ledFrom').max = $('ledTo').max = n;
+    }
+    const st = a.client.state, own = Wled.ownerMap(st, n), view = a.client.ledView(), e = a.client.effects;
+    const byId = {}; Wled.segsOf(st).forEach((s) => { byId[s.id] = s; });
+    for (let g = 0; g < n; g++) {
+      const c = grid.children[g], s = byId[own[g]];
+      let bg = '#000', cls = 'led';
+      if (!s) cls += ' none';
+      else if (!s.on) bg = '#000';
+      else if (view[g]) bg = view[g];
+      else { bg = C.rgbToHex(Wled.segColor(s)); if (s.fx !== e.solid) cls += ' fxbg'; }
+      if (ledSel.has(g)) cls += ' on';
+      if (c.className !== cls) c.className = cls;
+      if (c.style.background !== bg) c.style.background = bg;
+    }
+    renderLedInfo();
+  }
+  function renderLedInfo() {
+    const l = [...ledSel].sort((x, y) => x - y);
+    $('ledInfo').textContent = l.length ? 'Выбрано: ' + l.length + (l.length > 1 ? ' (' + (l[0] + 1) + '–' + (l[l.length - 1] + 1) + ')' : ' (№ ' + (l[0] + 1) + ')') : 'Ничего не выбрано';
+    const a = active();
+    if (a && l.length && !dragging) {
+      const m = a.client.leds[l[0]];
+      $('ledBri').value = Math.round((m ? m.bri : 255) / 2.55);
+    }
+    $('ledBriVal').textContent = $('ledBri').value + '%';
+  }
+  function renderLedSel() {
+    const grid = $('ledGrid');
+    for (let g = 0; g < grid.childElementCount; g++) grid.children[g].classList.toggle('on', ledSel.has(g));
+    renderLedInfo(); renderTargets();
+  }
+  function selectRange(x, y) {
+    ledSel = new Set(selBase);
+    for (let g = Math.min(x, y); g <= Math.max(x, y); g++) ledSel.add(g);
+    renderLedSel();
+  }
+  function cellAt(e) {
+    const t = document.elementFromPoint(e.clientX, e.clientY);
+    return t && t.classList.contains('led') && t.parentNode === $('ledGrid') ? +t.dataset.i : null;
+  }
+  const grid = $('ledGrid');
+  grid.addEventListener('pointerdown', (e) => {
+    const g = cellAt(e); if (g == null) return;
+    grid.setPointerCapture(e.pointerId);
+    selBase = $('ledAddMode').checked ? new Set(ledSel) : new Set();
+    anchor = g; moved = false; selDrag = true;
+    selectRange(g, g);
+  });
+  grid.addEventListener('pointermove', (e) => {
+    if (!selDrag) return;
+    const g = cellAt(e);
+    if (g != null && g !== anchor) moved = true;
+    if (g != null) selectRange(anchor, g);
+  });
+  ['pointerup', 'pointercancel'].forEach((n) => grid.addEventListener(n, () => {
+    if (!selDrag) return;
+    selDrag = false;
+    if (!moved && $('ledAddMode').checked && selBase.has(anchor)) { ledSel.delete(anchor); renderLedSel(); }
+    setTarget('leds');
+  }));
+  function pickRange(x, y) { selBase = $('ledAddMode').checked ? new Set(ledSel) : new Set(); selectRange(x, y); setTarget('leds'); }
+  $('ledPick').onclick = () => {
+    const a = active(); if (!a) return;
+    const n = a.client.count, from = +$('ledFrom').value, to = +$('ledTo').value || from;
+    if (!(from >= 1 && to >= from && to <= n)) { setStatus('Светодиоды: номера от 1 до ' + n + '.'); return; }
+    pickRange(from - 1, to - 1);
+  };
+  $('ledAll').onclick = () => { const a = active(); if (a) pickRange(0, a.client.count - 1); };
+  $('ledEvery').onclick = () => {
+    const l = [...ledSel].sort((x, y) => x - y);
+    ledSel = new Set(l.filter((g, k) => k % 2 === 0)); renderLedSel(); setTarget('leds');
+  };
+  $('ledNone').onclick = () => { ledSel.clear(); renderLedSel(); };
+  $('ledBri').addEventListener('input', () => {
+    $('ledBriVal').textContent = $('ledBri').value + '%';
+    const a = active(); if (!a || !ledSel.size) return;
+    const n = a.client.count, st = a.client.state, own = Wled.ownerMap(st, n), cur = a.client.leds, map = {};
+    const byId = {}; Wled.segsOf(st).forEach((s) => { byId[s.id] = s; });
+    const bri = Math.round(+$('ledBri').value * 255 / 100);
+    ledSel.forEach((g) => { const s = byId[own[g]]; if (s) map[g] = { rgb: cur[g] ? cur[g].rgb : Wled.segColor(s), bri }; });
+    run(a.client.setLeds(map));
+    renderLeds();
+  });
+  holdWhileDrag($('ledBri'));
+  $('ledReset').onclick = () => { const a = active(); if (a) run(a.client.clearLeds()); };
+
+  // ---------- соседи и поиск ----------
+  function offer(ip, label) {
+    if (devs.some((d) => d.ip === ip) || [...$('found').children].some((b) => b.dataset.ip === ip)) return;
+    const b = el('button', '', '+ ' + label); b.dataset.ip = ip;
+    b.onclick = () => { b.remove(); addDevice(ip); };
+    $('found').appendChild(b);
+  }
+  $('nodes').onclick = async () => {
+    const on = devs.filter((d) => d.online);
+    if (!on.length) { setStatus('Сначала подключите хотя бы один контроллер.'); return; }
+    setStatus('Спрашиваю соседей…');
+    let total = 0;
+    await Promise.all(on.map(async (d) => {
+      try { (await d.client.getNodes(3000)).forEach((x) => { total++; offer(x.ip, (x.name || 'WLED') + ' — ' + x.ip); }); } catch (e) { /* старый WLED */ }
+    }));
+    const fresh = $('found').childElementCount;
+    setStatus(total ? 'Соседей: ' + total + (fresh ? '. Нажмите «+», чтобы добавить.' : ' — все уже в списке.') : 'Соседей нет: включите Discovery в WLED (Config → Sync Interfaces) или найдите в сети.');
+  };
   $('prefix').value = LS.get('prefix', '192.168.1');
   $('scan').onclick = async () => {
     if (scanCtl) { scanCtl.abort(); return; }
     const prefix = $('prefix').value.trim().replace(/\.$/, '');
     LS.set('prefix', prefix);
-    $('found').textContent = '';
     scanCtl = new AbortController();
     $('scan').textContent = 'Стоп';
     const found = await Wled.scan([prefix, '4.3.2.1'], {
       fetch: fetchImpl || undefined, signal: scanCtl.signal,
       onProgress: (d, n) => { $('scanProg').textContent = 'Проверено ' + d + ' из ' + n; },
-      onFound: (d) => {
-        const b = document.createElement('button');
-        b.textContent = (d.info.name || 'WLED') + ' — ' + d.ip + ' · ' + d.info.leds.count + ' светодиодов';
-        b.onclick = () => connect(d.ip);
-        $('found').appendChild(b);
-      },
+      onFound: (d) => offer(d.ip, (d.info.name || 'WLED') + ' — ' + d.ip + ' · ' + d.info.leds.count + ' светодиодов'),
     });
     $('scanProg').textContent = (scanCtl.signal.aborted ? 'Остановлено. ' : '') + 'Найдено: ' + found.length;
     scanCtl = null; $('scan').textContent = 'Искать';
   };
 
-  $('connect').onclick = () => connect($('host').value);
-  $('host').addEventListener('keydown', (e) => { if (e.key === 'Enter') connect($('host').value); });
+  $('connect').onclick = () => { if (addDevice($('host').value)) $('host').value = ''; };
+  $('host').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('connect').onclick(); });
 
   // ---------- старт ----------
   function start() {
-    drawWheel(); renderPower(); renderBri(); renderColor(true); renderKel(); renderFavs();
-    if (MOCK && window.WledMock) { fetchImpl = WledMock.createMockFetch(); window.__mockFetch = fetchImpl; connect('192.168.1.50'); return; }
-    // страница открыта с самого контроллера — он и есть адрес
-    if (location.protocol === 'http:' && location.host) { connect(location.host); return; }
-    const last = LS.get('host', '');
-    if (last) connect(last);
+    drawWheel(); renderPower(); renderBri(); renderColor(true); renderKel(); renderFavs(); segForm();
+    loadDevs();
+    if (MOCK && window.WledMock) {
+      fetchImpl = WledMock.createMockFetch({ hosts: ['192.168.1.50', '192.168.1.51'], leds: { '192.168.1.51': 30 } });
+      window.__mockFetch = fetchImpl;
+      if (!devs.length) devs.push(mkDev('192.168.1.50', '', true));
+    } else if (location.protocol === 'http:' && location.host) {
+      // страница открыта с самого контроллера — он в списке и отмечен
+      const h = Wled.normHost(location.host);
+      let d = devs.find((x) => x.ip === h);
+      if (!d) { d = mkDev(h, '', true); devs.unshift(d); }
+      if (!devs.some((x) => x.sel)) d.sel = true;
+    }
+    saveDevs();
+    renderAll();
+    devs.forEach((d) => { if (d.sel) connectDev(d); });
+    startPoll();
   }
   if (MOCK) {
     const s = document.createElement('script');
